@@ -1,9 +1,13 @@
 package pro.dominion;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -38,6 +42,8 @@ public class DominionBatch {
     		parseTLDs(em);
     	} else if(args.length > 0 && args[0].equals("-alexa")){
     		parseAlexa(em);
+    	} else if(args.length > 1 && args[0].equals("-wikisql")){
+    		wikiSQL(args[1], em);
     	} else {
     		System.out.println("not yet implemented");
     	}
@@ -46,6 +52,44 @@ public class DominionBatch {
         emFactory.close();
     }
     
+	private static void wikiSQL(String fileName, EntityManager em) {
+		Scanner sc;
+		try {
+			sc = new Scanner(new BufferedReader(new FileReader(fileName))).useDelimiter("'");
+			while (sc.hasNext()) {
+				String url = sc.next();
+				if(url.contains("http://") || url.contains("https://")){
+					String domain = url.substring(url.indexOf("://") + 3);
+					if (domain.contains("/")){
+						domain = domain.substring(0, domain.indexOf("/"));
+					}
+					// For some reason the domains are doubled and reversed in the sql file
+					if(!domain.endsWith(".")){
+						addDomainString(domain, em);
+					}
+				}
+			}
+			sc.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	  
+		
+	}
+
+	private static void addDomainString(String domain, EntityManager em) {
+		while(domain.contains(".")){
+			String tldString = domain.substring(domain.indexOf(".") + 1);
+			if(tldMap.containsKey(tldString)){
+				addDomain(domain.substring(0, domain.indexOf(".")), tldString, em);
+				break;
+			} else {
+				domain = domain.substring(domain.indexOf(".") + 1);
+			}
+		}
+	}
+
 	private static void parseAlexa(EntityManager em) {
 		Document doc;
 		try {
