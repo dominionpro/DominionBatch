@@ -79,9 +79,10 @@ public class DominionBatch {
 	}
 
 	private static void addDomainString(String domain, EntityManager em) {
-		while(domain.contains(".")){
+		while(domain.contains(".") && !tldMap.containsKey(domain)){
 			String tldString = domain.substring(domain.indexOf(".") + 1);
 			if(tldMap.containsKey(tldString)){
+				System.out.println("Saving: " + domain.indexOf(".") + "." + tldString);
 				addDomain(domain.substring(0, domain.indexOf(".")), tldString, em);
 				break;
 			} else {
@@ -183,7 +184,7 @@ public class DominionBatch {
 				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
 			}
 		} else {
-			System.out.println("Domain " + domainName + "." + tldName + " is already in DB!");
+//			System.out.println("Domain " + domainName + "." + tldName + " is already in DB!");
 		}
 	}
 
