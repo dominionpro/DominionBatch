@@ -40,8 +40,6 @@ public class DominionBatch {
     		System.out.println("not yet implemented");
     	}
         
-        addDomain("dachengchuan.de", em);
-
         em.close();
         emFactory.close();
     }
