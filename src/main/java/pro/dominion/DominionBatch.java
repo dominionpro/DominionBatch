@@ -179,13 +179,10 @@ public class DominionBatch {
 				em.persist(t);
 				em.flush();
 				tx.commit();
-				System.out.println("Saving: " + domainName + "." + tldName);
 			} else {
 				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
 			}
-		} else {
-//			System.out.println("Domain " + domainName + "." + tldName + " is already in DB!");
-		}
+		} 
 	}
 
 	private static void getTldMap(EntityManager em) {
