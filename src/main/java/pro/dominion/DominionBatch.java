@@ -82,7 +82,6 @@ public class DominionBatch {
 		while(domain.contains(".") && !tldMap.containsKey(domain)){
 			String tldString = domain.substring(domain.indexOf(".") + 1);
 			if(tldMap.containsKey(tldString)){
-				System.out.println("Saving: " + domain.indexOf(".") + "." + tldString);
 				addDomain(domain.substring(0, domain.indexOf(".")), tldString, em);
 				break;
 			} else {
@@ -180,6 +179,7 @@ public class DominionBatch {
 				em.persist(t);
 				em.flush();
 				tx.commit();
+				System.out.println("Saving: " + domainName + "." + tldName);
 			} else {
 				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
 			}
