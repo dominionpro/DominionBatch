@@ -36,6 +36,8 @@ public class DominionBatch {
 
         if(args.length > 0 && args[0].equals("-tlds")){
     		parseTLDs(em);
+    	} else if(args.length > 0 && args[0].equals("-alexa")){
+    		parseAlexa(em);
     	} else {
     		System.out.println("not yet implemented");
     	}
@@ -44,6 +46,39 @@ public class DominionBatch {
         emFactory.close();
     }
     
+	private static void parseAlexa(EntityManager em) {
+		Document doc;
+		try {
+			for (int i = 0; i < 20; i++) {
+				doc = Jsoup.connect("http://www.alexa.com/topsites/global;" + Integer.toString(i)).get();
+				Elements links = doc.select("a[href]");
+				for (Element link : links) {
+					String linkString = link.attr("abs:href").trim();
+					if (linkString.contains("siteinfo")) {
+						int slashIndex = linkString.lastIndexOf("/");
+						if (slashIndex < linkString.length()) {
+							String domainString = linkString.substring(slashIndex + 1);
+							if (domainString.contains(".")) {
+								String domainName = domainString.substring(0, domainString.indexOf("."));
+								String tldName = domainString.substring(domainString.indexOf(".") + 1);
+								if(tldName.contains(".")){
+									System.out.println("ERROR: TLD " + tldName + " not processible on page " + Integer.toString(i));
+								} else {
+									System.out.println("Saving: " + domainName + "*" + tldName);
+									addDomain(domainName, tldName, em);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
 	private static void parseTLDs(EntityManager em) {
 		Document doc;
 		try {
@@ -82,28 +117,30 @@ public class DominionBatch {
 		getTldMap(em);
 	}
 
-	private static void addDomain(String fullDomainName, EntityManager em) {
-		String tldName = fullDomainName.substring(fullDomainName.lastIndexOf(".") + 1);
-		String domainName = fullDomainName.substring(0, fullDomainName.lastIndexOf("."));
-		System.out.println("tldName: " + tldName);
-		System.out.println("domainName: " + domainName);
-        Domain d = new Domain();
-        d.setName(domainName);
-        tldName = fullDomainName.substring(fullDomainName.lastIndexOf(".") + 1);
-        Tld t = tldMap.get(tldName);
-        if(t != null){
-        	d.setTld(t);
-            EntityTransaction tx = em.getTransaction();
-            tx.begin();
-            em.persist(d);
-            em.persist(t);
-            em.flush();
-            tx.commit();
-        } else {
-        	System.out.println("TLD " + tldName + " is not yet registered!");
-        }
-        
-		
+	private static void addDomain(String domainName, String tldName, EntityManager em) {
+		List res = em
+				.createQuery("SELECT d.name FROM Domain d JOIN d.tld t where d.name=:domainName and t.name=:tldName)")
+				.setParameter("domainName", domainName)
+				.setParameter("tldName", tldName)
+				.getResultList();
+		if (res.size() == 0) {
+			Domain d = new Domain();
+			d.setName(domainName);
+			Tld t = tldMap.get(tldName);
+			if (t != null) {
+				d.setTld(t);
+				EntityTransaction tx = em.getTransaction();
+				tx.begin();
+				em.persist(d);
+				em.persist(t);
+				em.flush();
+				tx.commit();
+			} else {
+				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
+			}
+		} else {
+			System.out.println("Domain " + domainName + "." + tldName + " is already in DB!");
+		}
 	}
 
 	private static void getTldMap(EntityManager em) {
