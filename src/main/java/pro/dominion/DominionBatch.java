@@ -17,6 +17,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+
+import org.apache.commons.validator.routines.DomainValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -59,6 +61,7 @@ public class DominionBatch {
     }
     
 	private static void extractlines(String fileName, EntityManager em) {
+		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
 		HashSet<String> domainSet = new HashSet<String>();
 		try {
@@ -71,9 +74,7 @@ public class DominionBatch {
 					if (domain.contains("/")){
 						domain = domain.substring(0, domain.indexOf("/"));
 					}
-					// For some reason the domains are doubled and reversed in the sql file
-					// TODO: replace with fqdn-validator from apache commons
-					if(!domain.endsWith(".")){
+					if(domVal.isValid(domain)){
 						domainSet.add(domain);
 					}
 				}
@@ -103,6 +104,7 @@ public class DominionBatch {
 	}
 
 	private static void wikiSQL(String fileName, EntityManager em) {
+		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
 		try {
 			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
@@ -114,9 +116,7 @@ public class DominionBatch {
 					if (domain.contains("/")){
 						domain = domain.substring(0, domain.indexOf("/"));
 					}
-					// For some reason the domains are doubled and reversed in the sql file
-					// TODO: replace with fqdn-validator from apache commons
-					if(!domain.endsWith(".")){
+					if(domVal.isValid(domain)){
 						addDomainString(domain, em);
 					}
 				}
