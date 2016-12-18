@@ -128,8 +128,14 @@ public class DominionBatch {
 			e.printStackTrace();
 		}
 		Iterator<String> it = domainSet.iterator();
+		int percentStep = ((domainSet.size()/100) > 0) ? (domainSet.size()/100) : 1;
+		int counter = 0;
 		while(it.hasNext()) {
 			addDomainString(it.next(), em);
+			counter++;
+			if ((counter % percentStep) == 0){
+				System.out.println("Progress: " + (100 * counter) / domainSet.size() + "%");
+			}
 		}
 	}
 
