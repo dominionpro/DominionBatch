@@ -1,10 +1,14 @@
 package pro.dominion;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -44,6 +48,8 @@ public class DominionBatch {
     		parseAlexa(em);
     	} else if(args.length > 1 && args[0].equals("-wikisql")){
     		wikiSQL(args[1], em);
+    	} else if(args.length > 1 && args[0].equals("-extractlines")){
+    		extractlines(args[1], em);
     	} else {
     		System.out.println("not yet implemented");
     	}
@@ -52,10 +58,12 @@ public class DominionBatch {
         emFactory.close();
     }
     
-	private static void wikiSQL(String fileName, EntityManager em) {
+	private static void extractlines(String fileName, EntityManager em) {
 		Scanner sc;
+		HashSet<String> domainSet = new HashSet<String>();
 		try {
-			sc = new Scanner(new BufferedReader(new FileReader(fileName))).useDelimiter("'");
+			sc= new Scanner(new BufferedReader(new FileReader(fileName)));
+			sc.useDelimiter("'");
 			while (sc.hasNext()) {
 				String url = sc.next();
 				if(url.contains("http://") || url.contains("https://")){
@@ -64,6 +72,50 @@ public class DominionBatch {
 						domain = domain.substring(0, domain.indexOf("/"));
 					}
 					// For some reason the domains are doubled and reversed in the sql file
+					// TODO: replace with fqdn-validator from apache commons
+					if(!domain.endsWith(".")){
+						domainSet.add(domain);
+					}
+				}
+			}
+			sc.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(fileName.contains(".")){
+			fileName = fileName.substring(0, fileName.lastIndexOf(".")).concat(".dom");
+		} else {
+			fileName = fileName.concat(".dom");
+		}
+		BufferedWriter out;
+		try {
+			out = new BufferedWriter(new FileWriter(fileName));
+			Iterator<String> it = domainSet.iterator();
+			while(it.hasNext()) {
+			    out.write(it.next()+"\n");
+			}
+			out.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private static void wikiSQL(String fileName, EntityManager em) {
+		Scanner sc;
+		try {
+			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
+			sc.useDelimiter("'");
+			while (sc.hasNext()) {
+				String url = sc.next();
+				if(url.contains("http://") || url.contains("https://")){
+					String domain = url.substring(url.indexOf("://") + 3);
+					if (domain.contains("/")){
+						domain = domain.substring(0, domain.indexOf("/"));
+					}
+					// For some reason the domains are doubled and reversed in the sql file
+					// TODO: replace with fqdn-validator from apache commons
 					if(!domain.endsWith(".")){
 						addDomainString(domain, em);
 					}
@@ -74,8 +126,6 @@ public class DominionBatch {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	  
-		
 	}
 
 	private static void addDomainString(String domain, EntityManager em) {
