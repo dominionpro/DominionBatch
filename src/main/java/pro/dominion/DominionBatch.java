@@ -106,6 +106,7 @@ public class DominionBatch {
 	private static void wikiSQL(String fileName, EntityManager em) {
 		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
+		HashSet<String> domainSet = new HashSet<String>();
 		try {
 			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
 			sc.useDelimiter("'");
@@ -117,7 +118,7 @@ public class DominionBatch {
 						domain = domain.substring(0, domain.indexOf("/"));
 					}
 					if(domVal.isValid(domain)){
-						addDomainString(domain, em);
+						domainSet.add(domain);
 					}
 				}
 			}
@@ -125,6 +126,10 @@ public class DominionBatch {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		Iterator<String> it = domainSet.iterator();
+		while(it.hasNext()) {
+			addDomainString(it.next(), em);
 		}
 	}
 
@@ -232,7 +237,7 @@ public class DominionBatch {
 			} else {
 				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
 			}
-		} 
+		}
 	}
 
 	private static void getTldMap(EntityManager em) {
