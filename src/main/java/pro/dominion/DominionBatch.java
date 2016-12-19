@@ -49,7 +49,13 @@ public class DominionBatch {
     	} else if(args.length > 0 && args[0].equals("-alexa")){
     		parseAlexa(em);
     	} else if(args.length > 1 && args[0].equals("-wikisql")){
-    		wikiSQL(args[1], em);
+    		boolean domainUsage = true;
+    		if(args.length > 2){
+    			if(args[2].equals("-ignoreDomainUsage")){
+    				domainUsage = false;
+    			}
+    		}
+    		wikiSQL(args[1], domainUsage, em);
     	} else if(args.length > 1 && args[0].equals("-extractlines")){
     		extractlines(args[1], em);
     	} else {
@@ -103,7 +109,7 @@ public class DominionBatch {
 		}
 	}
 
-	private static void wikiSQL(String fileName, EntityManager em) {
+	private static void wikiSQL(String fileName, boolean domainUsage, EntityManager em) {
 		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
 		HashSet<String> domainSet = new HashSet<String>();
@@ -131,7 +137,7 @@ public class DominionBatch {
 		int percentStep = ((domainSet.size()/100) > 0) ? (domainSet.size()/100) : 1;
 		int counter = 0;
 		while(it.hasNext()) {
-			addDomainString(it.next(), em);
+			addDomainString(it.next(), domainUsage, em);
 			counter++;
 			if ((counter % percentStep) == 0){
 				System.out.println("Progress: " + (100 * counter) / domainSet.size() + "%");
@@ -139,11 +145,11 @@ public class DominionBatch {
 		}
 	}
 
-	private static void addDomainString(String domain, EntityManager em) {
+	private static void addDomainString(String domain, boolean domainUsage, EntityManager em) {
 		while(domain.contains(".") && !tldMap.containsKey(domain)){
 			String tldString = domain.substring(domain.indexOf(".") + 1);
 			if(tldMap.containsKey(tldString)){
-				addDomain(domain.substring(0, domain.indexOf(".")), tldString, em);
+				addDomain(domain.substring(0, domain.indexOf(".")), tldString, domainUsage, em);
 				break;
 			} else {
 				domain = domain.substring(domain.indexOf(".") + 1);
@@ -170,7 +176,7 @@ public class DominionBatch {
 									System.out.println("ERROR: TLD " + tldName + " not processible on page " + Integer.toString(i));
 								} else {
 									System.out.println("Saving: " + domainName + "*" + tldName);
-									addDomain(domainName, tldName, em);
+									addDomain(domainName, tldName, true, em);
 								}
 							}
 						}
@@ -222,7 +228,7 @@ public class DominionBatch {
 		getTldMap(em);
 	}
 
-	private static void addDomain(String domainName, String tldName, EntityManager em) {
+	private static void addDomain(String domainName, String tldName, boolean domainUsage, EntityManager em) {
 		List res = em
 				.createQuery("SELECT d.name FROM Domain d JOIN d.tld t where d.name=:domainName and t.name=:tldName)")
 				.setParameter("domainName", domainName)
@@ -233,7 +239,11 @@ public class DominionBatch {
 			d.setName(domainName);
 			Tld t = tldMap.get(tldName);
 			if (t != null) {
-				d.setTld(t);
+				if(domainUsage){
+					d.setIncrementedTld(t);
+				} else {
+					d.setTld(t);
+				}
 				EntityTransaction tx = em.getTransaction();
 				tx.begin();
 				em.persist(d);

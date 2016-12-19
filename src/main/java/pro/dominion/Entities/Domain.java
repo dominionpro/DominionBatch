@@ -29,10 +29,14 @@ public class Domain extends DominionEntity {
 		return tld;
 	}
 
-	public void setTld(Tld tld) {
+	public void setIncrementedTld(Tld tld) {
 		if(this.tld == null){
 			tld.incrementUsage();
 		}
+		this.tld = tld;
+	}
+	
+	public void setTld(Tld tld) {
 		this.tld = tld;
 	}
 
