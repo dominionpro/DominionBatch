@@ -137,25 +137,31 @@ public class DominionBatch {
 		Iterator<String> it = domainSet.iterator();
 		int percentStep = ((domainSet.size()/100) > 0) ? (domainSet.size()/100) : 1;
 		int counter = 0;
+		int domainsSaved = 0;
 		while(it.hasNext()) {
-			addDomainString(it.next(), domainUsage, em);
+			if(addDomainString(it.next(), domainUsage, em)){
+				domainsSaved++;
+			}
 			counter++;
 			if ((counter % percentStep) == 0){
 				System.out.println("Progress: " + (100 * counter) / domainSet.size() + "%");
 			}
 		}
+		System.out.println("Saved " + domainsSaved + " new domains");
 	}
 
-	private static void addDomainString(String domain, boolean domainUsage, EntityManager em) {
+	private static boolean addDomainString(String domain, boolean domainUsage, EntityManager em) {
+		boolean saved = false;
 		while(domain.contains(".") && !tldMap.containsKey(domain)){
 			String tldString = domain.substring(domain.indexOf(".") + 1);
 			if(tldMap.containsKey(tldString)){
-				addDomain(domain.substring(0, domain.indexOf(".")), tldString, domainUsage, em);
+				saved = addDomain(domain.substring(0, domain.indexOf(".")), tldString, domainUsage, em);
 				break;
 			} else {
 				domain = domain.substring(domain.indexOf(".") + 1);
 			}
 		}
+		return saved;
 	}
 
 	private static void parseAlexa(EntityManager em) {
@@ -229,7 +235,8 @@ public class DominionBatch {
 		getTldMap(em);
 	}
 
-	private static void addDomain(String domainName, String tldName, boolean domainUsage, EntityManager em) {
+	private static boolean addDomain(String domainName, String tldName, boolean domainUsage, EntityManager em) {
+		boolean saved = false;
 		List res = em
 				.createQuery("SELECT d.name FROM Domain d JOIN d.tld t where d.name=:domainName and t.name=:tldName)")
 				.setParameter("domainName", domainName)
@@ -251,10 +258,12 @@ public class DominionBatch {
 				em.persist(t);
 				em.flush();
 				tx.commit();
+				saved = true;
 			} else {
 				System.out.println("ERROR: TLD " + tldName + " is not yet registered!");
 			}
 		}
+		return saved;
 	}
 
 	private static void getTldMap(EntityManager em) {
