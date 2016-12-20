@@ -133,6 +133,7 @@ public class DominionBatch {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("Found " + domainSet.size() + " entries, starting to save new domains...");
 		Iterator<String> it = domainSet.iterator();
 		int percentStep = ((domainSet.size()/100) > 0) ? (domainSet.size()/100) : 1;
 		int counter = 0;
