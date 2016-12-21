@@ -69,18 +69,21 @@ public class DominionBatch {
     }
     
 	private static void parseAlexaList(String fileName, EntityManager em) {
-		// top-1m.csv
-		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
-		HashSet<String> domainSet = new HashSet<String>();
 		try {
 			int domainsSaved = 0;
 			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
+			int counter = 0;
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
 				String domain = line.substring(line.indexOf(",")+1);
 				if(addDomainString(domain, false, em)){
 					domainsSaved++;
+				}
+				counter++;
+				if ((counter % 10000) == 0){
+					// Progress in % is (100 * counter) / listsize; listsize is 1.000.000
+					System.out.println("Progress: " + counter / 10000 + "%");
 				}
 			}
 			sc.close();
@@ -255,7 +258,6 @@ public class DominionBatch {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 		em.persist(t);
-		em.flush();
 		tx.commit();
 		getTldMap(em);
 	}
@@ -281,7 +283,6 @@ public class DominionBatch {
 				tx.begin();
 				em.persist(d);
 				em.persist(t);
-				em.flush();
 				tx.commit();
 				saved = true;
 			} else {
