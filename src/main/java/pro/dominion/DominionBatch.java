@@ -48,6 +48,8 @@ public class DominionBatch {
     		parseTLDs(em);
     	} else if(args.length > 0 && args[0].equals("-alexa")){
     		parseAlexa(em);
+    	} else if(args.length > 1 && args[0].equals("-alexalist")){
+    		parseAlexaList(args[1], em);
     	} else if(args.length > 1 && args[0].equals("-wikisql")){
     		boolean domainUsage = true;
     		if(args.length > 2){
@@ -66,6 +68,29 @@ public class DominionBatch {
         emFactory.close();
     }
     
+	private static void parseAlexaList(String fileName, EntityManager em) {
+		// top-1m.csv
+		DomainValidator domVal = DomainValidator.getInstance();
+		Scanner sc;
+		HashSet<String> domainSet = new HashSet<String>();
+		try {
+			int domainsSaved = 0;
+			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				String domain = line.substring(line.indexOf(",")+1);
+				if(addDomainString(domain, false, em)){
+					domainsSaved++;
+				}
+			}
+			sc.close();
+			System.out.println("Saved " + domainsSaved + " new domains");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	private static void extractlines(String fileName, EntityManager em) {
 		DomainValidator domVal = DomainValidator.getInstance();
 		Scanner sc;
