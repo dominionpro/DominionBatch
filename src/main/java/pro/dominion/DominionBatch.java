@@ -107,9 +107,7 @@ public class DominionBatch {
 		int counter = 0;
 		int domainsSaved = 0;
 		while(it.hasNext()) {
-			String domainToSave = it.next();
-			if(addDomainString(domainToSave, false, em)){
-				System.out.println("Saved domain " + domainToSave);
+			if(addDomainString(it.next(), false, em)){
 				domainsSaved++;
 			}
 			counter++;
@@ -232,6 +230,7 @@ public class DominionBatch {
 
 	private static boolean addDomainString(String domain, boolean domainUsage, EntityManager em) {
 		boolean saved = false;
+		domain = domain.toLowerCase();
 		while(domain.contains(".") && !tldMap.containsKey(domain)){
 			String tldString = domain.substring(domain.indexOf(".") + 1);
 			if(tldMap.containsKey(tldString)){
