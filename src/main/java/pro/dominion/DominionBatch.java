@@ -53,6 +53,8 @@ public class DominionBatch {
     		} else {
     			System.out.println("Failed to save domain " + args[1]);
     		}
+    	} else if(args.length > 1 && args[0].equals("-dmoz")){
+    		parseDmoz(args[1], em);
     	} else if(args.length > 0 && args[0].equals("-alexa")){
     		parseAlexa(em);
     	} else if(args.length > 1 && args[0].equals("-alexalist")){
@@ -75,6 +77,49 @@ public class DominionBatch {
         emFactory.close();
     }
     
+	private static void parseDmoz(String fileName, EntityManager em) {
+		DomainValidator domVal = DomainValidator.getInstance();
+		Scanner sc;
+		HashSet<String> domainSet = new HashSet<String>();
+		try {
+			sc = new Scanner(new BufferedReader(new FileReader(fileName)));
+			sc.useDelimiter("\"");
+			while (sc.hasNext()) {
+				String url = sc.next();
+				if(url.contains("http://") || url.contains("https://")){
+					String domain = url.substring(url.indexOf("://") + 3);
+					if (domain.contains("/")){
+						domain = domain.substring(0, domain.indexOf("/"));
+					}
+					if(domVal.isValid(domain)){
+						domainSet.add(domain);
+					}
+				}
+			}
+			sc.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Found " + domainSet.size() + " entries, starting to save new domains...");
+		Iterator<String> it = domainSet.iterator();
+		int percentStep = ((domainSet.size()/100) > 0) ? (domainSet.size()/100) : 1;
+		int counter = 0;
+		int domainsSaved = 0;
+		while(it.hasNext()) {
+			String domainToSave = it.next();
+			if(addDomainString(domainToSave, false, em)){
+				System.out.println("Saved domain " + domainToSave);
+				domainsSaved++;
+			}
+			counter++;
+			if ((counter % percentStep) == 0){
+				System.out.println("Progress: " + (100 * counter) / domainSet.size() + "%");
+			}
+		}
+		System.out.println("Saved " + domainsSaved + " new domains");
+	}
+
 	private static void parseAlexaList(String fileName, EntityManager em) {
 		Scanner sc;
 		try {
