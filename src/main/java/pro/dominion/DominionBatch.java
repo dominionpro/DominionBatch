@@ -46,6 +46,13 @@ public class DominionBatch {
 
         if(args.length > 0 && args[0].equals("-tlds")){
     		parseTLDs(em);
+    	} else if(args.length > 1 && args[0].equals("-add")){
+    		boolean success = addDomainString(args[1], false, em);
+    		if(success){
+    			System.out.println("Successfully added domain " + args[1]);
+    		} else {
+    			System.out.println("Failed to save domain " + args[1]);
+    		}
     	} else if(args.length > 0 && args[0].equals("-alexa")){
     		parseAlexa(em);
     	} else if(args.length > 1 && args[0].equals("-alexalist")){
