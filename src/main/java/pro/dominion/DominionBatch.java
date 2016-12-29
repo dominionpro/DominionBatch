@@ -113,6 +113,10 @@ public class DominionBatch {
 			counter++;
 			if ((counter % percentStep) == 0){
 				System.out.println("Progress: " + (100 * counter) / domainSet.size() + "%");
+				em.flush();
+				em.clear();
+				getTldMap(em);
+				
 			}
 		}
 		System.out.println("Saved " + domainsSaved + " new domains");
