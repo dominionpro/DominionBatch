@@ -56,3 +56,54 @@ create sequence SEQ_DOMINION start 1 increment 1;
         add constraint FKgsuhnjn36ttw27dcy4kuf7nn8 
         foreign key (Domain_id) 
         references Domain;
+        
+    create table Subdomain (
+        id int8 not null,
+        version int8,
+        description varchar(255),
+        name varchar(255),
+        redirectContext varchar(255),
+        title varchar(255),
+        updateTime timestamp,
+        domain_id int8,
+        primary key (id)
+    );
+
+    create table Subdomain_Keyword (
+        Subdomain_id int8 not null,
+        keywords_id int8 not null
+    );
+    
+    alter table Subdomain_Keyword 
+        add constraint UK_3sol0r64sumru4mx3ne3kakx6 unique (keywords_id);
+        
+    alter table Subdomain 
+        add constraint FKs6rv3lg53krmkntshk6wkp3o2 
+        foreign key (domain_id) 
+        references Domain;
+
+    alter table Subdomain_Keyword 
+        add constraint FKp5veile0vnlimdtx97q78hhie 
+        foreign key (keywords_id) 
+        references Keyword;
+
+    alter table Subdomain_Keyword 
+        add constraint FKg5yy7uvbaxpodu6xw4vnu65pj 
+        foreign key (Subdomain_id) 
+        references Subdomain;
+        
+    alter table Domain add column
+ 		redirectContext varchar(255);
+	alter table Domain add column
+ 		title varchar(255);
+	alter table Domain add column
+ 		redirectSubdomain_id int8;
+
+	alter table Domain 
+		add constraint FKatda1fi4uwqrgo3uxbh63dm1h 
+		foreign key (redirectSubdomain_id) 
+		references Subdomain;
+
+
+
+

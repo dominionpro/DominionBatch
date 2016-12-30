@@ -6,18 +6,16 @@ import java.util.List;
 import javax.persistence.*;
 
 @Entity
-@Table(uniqueConstraints= @UniqueConstraint(columnNames={"name", "tld_id"}))
-public class Domain extends DominionEntity {
+//@Table(uniqueConstraints= @UniqueConstraint(columnNames={"name", "domain"}))
+public class Subdomain extends DominionEntity {
 	
-	@ManyToOne
-	private Tld tld;
 	private String name;
 	private String title;
 	private String description;
 	@OneToMany
 	private List<Keyword> keywords;
 	@OneToOne
-	private Subdomain redirectSubdomain;
+	private Domain domain;
 	private String redirectContext;
 	private Date updateTime;
 	
@@ -27,21 +25,6 @@ public class Domain extends DominionEntity {
 	
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public Tld getTld() {
-		return tld;
-	}
-
-	public void setIncrementedTld(Tld tld) {
-		if(this.tld == null){
-			tld.incrementUsage();
-		}
-		this.tld = tld;
-	}
-	
-	public void setTld(Tld tld) {
-		this.tld = tld;
 	}
 
 	public String getTitle() {
@@ -72,12 +55,12 @@ public class Domain extends DominionEntity {
 		this.keywords = keywords;
 	}
 
-	public Subdomain getRedirectSubdomain() {
-		return redirectSubdomain;
+	public Domain getDomain() {
+		return domain;
 	}
 
-	public void setRedirectSubdomain(Subdomain redirectSubdomain) {
-		this.redirectSubdomain = redirectSubdomain;
+	public void setDomain(Domain domain) {
+		this.domain = domain;
 	}
 
 	public String getRedirectContext() {
@@ -95,6 +78,5 @@ public class Domain extends DominionEntity {
 	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
 	}
-
 
 }
